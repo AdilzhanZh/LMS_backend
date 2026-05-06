@@ -14,7 +14,6 @@ func New(router http.Handler, port string) *Server {
 		httpServ: &http.Server{
 			Addr:    ":" + port,
 			Handler: router,
-			//TODO configs
 		},
 	}
 }
