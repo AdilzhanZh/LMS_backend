@@ -1,6 +1,9 @@
 package repository
 
-import "github.com/AdilzhanZh/LMS_backend/internal/models"
+import (
+	"github.com/AdilzhanZh/LMS_backend/internal/models"
+	"github.com/jmoiron/sqlx"
+)
 
 type CourseRepo interface {
 	GetAll() ([]models.Course, error)
@@ -8,20 +11,30 @@ type CourseRepo interface {
 }
 
 type PsgCourseRepo struct {
-	db *DB
+	db *sqlx.DB
 }
 
-func NewPsqCourseRepo(db *DB) *PsgCourseRepo {
+func NewPsgCourseRepo(db *sqlx.DB) *PsgCourseRepo {
 	return &PsgCourseRepo{
 		db: db,
 	}
 }
 
 func (pcr *PsgCourseRepo) GetAll() ([]models.Course, error) {
-	return []models.Course{
-		{ID: 1, Name: "Go Basics"},
-		{ID: 2, Name: "Nodejs Basics"},
-		{ID: 3, Name: "Java Basics"},
-		{ID: 4, Name: "Python Basics"},
-	}, nil
+	var courses []models.Course
+
+	query := `
+		SELECT id, title, description, slug, price, duration, level,
+		is_active, teacher_id, created_at, updated_at, deleted_at
+		FROM courses
+		WHERE deleted_at IS NULL
+		ORDER BY created_at DESC
+	`
+
+	err := pcr.db.Select(&courses, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return courses, nil
 }
