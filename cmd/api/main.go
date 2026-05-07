@@ -24,10 +24,11 @@ func main() {
 
 	db, err := repository.NewPostgresDB(cfg)
 	if err != nil {
+		slog.Error("failed to connect db", "db", err)
 		return
 	}
 
-	courseRepo := repository.NewPsqCourseRepo(db)
+	courseRepo := repository.NewPsgCourseRepo(db)
 	courseService := service.NewCourseService(courseRepo)
 
 	h := handler.NewHandler(courseService)

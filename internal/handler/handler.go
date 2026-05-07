@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/AdilzhanZh/LMS_backend/internal/service"
@@ -30,6 +31,8 @@ func (h *Handler) InitRoutes() (*gin.Engine, error) {
 func (h *Handler) GetCourses(c *gin.Context) {
 	courses, err := h.courseService.GetAll()
 	if err != nil {
+		slog.Error("failed to get courses", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get courses"})
 		return
 	}
 
