@@ -22,14 +22,46 @@ func NewHandler(cs *service.CourseService) *Handler {
 }
 
 func (h *Handler) InitRoutes() (*gin.Engine, error) {
-	r := gin.New()
+	r := gin.Default()
 
 	r.GET("/courses", h.GetCourses)
 	r.GET("/courses/:id", h.GetCourseByID)
 	r.DELETE("/courses/:id", h.DeleteCourse)
 	r.POST("/courses", h.CreateCourse)
+	r.PUT("/courses/:id", h.UpdateCourse)
 
 	return r, nil
+}
+
+func (h *Handler) UpdateCourse(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid course id",
+		})
+		return
+	}
+
+	var course models.UpdateCourse
+	if err = c.ShouldBindJSON(&course); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request body",
+		})
+		return
+	}
+
+	updatedID, err := h.courseService.Update(c.Request.Context(), id, course)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "course to update not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"id": updatedID,
+	})
 }
 
 func (h *Handler) CreateCourse(c *gin.Context) {

@@ -30,3 +30,7 @@ func (cs *CourseService) DeleteByID(ctx context.Context, ID int) error {
 func (cs *CourseService) Create(ctx context.Context, course models.CreateCourse) (int, error) {
 	return cs.repo.Create(ctx, course)
 }
+
+func (cs *CourseService) Update(ctx context.Context, id int, course models.UpdateCourse) (int, error) {
+	return cs.repo.Update(ctx, id, course)
+}
