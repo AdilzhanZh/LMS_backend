@@ -30,8 +30,10 @@ func main() {
 
 	courseRepo := repository.NewPsgCourseRepo(db)
 	courseService := service.NewCourseService(courseRepo)
+	lessonRepo := repository.NewPsgLessonRepo(db)
+	lessonService := service.NewLessonService(lessonRepo)
 
-	h := handler.NewHandler(courseService)
+	h := handler.NewHandler(courseService, lessonService)
 	router, err := h.InitRoutes()
 	if err != nil {
 		slog.Error("failed to init router", "router", err)

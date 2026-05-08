@@ -10,6 +10,7 @@ import (
 
 	"github.com/AdilzhanZh/LMS_backend/internal/models"
 	"github.com/AdilzhanZh/LMS_backend/internal/pkg/utils"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -54,6 +55,14 @@ func (pcr *PsgCourseRepo) Create(ctx context.Context, course models.CreateCourse
 	var id int
 	err = stmt.Get(&id, course)
 	if err != nil {
+		var pgErr *pgconn.PgError // for catch error from postgres
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23503" { //no teacher_id
+				return 0, models.ErrTeacherNotFound
+			} else if pgErr.Code == "23505" { //unique constraint
+				return 0, models.ErrSlugAlreadyExists
+			}
+		}
 		return 0, fmt.Errorf("create courses error: %w", err)
 	}
 	return id, nil
@@ -79,7 +88,7 @@ func (pcr *PsgCourseRepo) DeleteByID(ctx context.Context, ID int) error {
 	}
 
 	if rowsAffected == 0 {
-		return models.ErrNotFound
+		return models.ErrCourseNotFound
 	}
 
 	return nil
@@ -101,7 +110,7 @@ func (pcr *PsgCourseRepo) GetByID(ctx context.Context, ID int) (models.Course, e
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Error no such id", "db", err)
-			return models.Course{}, models.ErrNotFound
+			return models.Course{}, models.ErrCourseNotFound
 		}
 		slog.Error("Error with db", "db", err)
 		return models.Course{}, fmt.Errorf("failed to get course by id err: %w", err)
@@ -204,7 +213,7 @@ func (pcr *PsgCourseRepo) Update(ctx context.Context, id int, course models.Upda
 	var updatedID int
 	if err := pcr.db.GetContext(ctx, &updatedID, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, models.ErrNotFound
+			return 0, models.ErrCourseNotFound
 		}
 		return 0, fmt.Errorf("update course: %w", err)
 	}
