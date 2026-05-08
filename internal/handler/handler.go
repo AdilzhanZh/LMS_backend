@@ -29,7 +29,7 @@ func (h *Handler) InitRoutes() (*gin.Engine, error) {
 }
 
 func (h *Handler) GetCourses(c *gin.Context) {
-	courses, err := h.courseService.GetAll()
+	courses, err := h.courseService.GetAll(c.Request.Context())
 	if err != nil {
 		slog.Error("failed to get courses", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get courses"})

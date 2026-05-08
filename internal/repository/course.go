@@ -1,12 +1,14 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/AdilzhanZh/LMS_backend/internal/models"
 	"github.com/jmoiron/sqlx"
 )
 
 type CourseRepo interface {
-	GetAll() ([]models.Course, error)
+	GetAll(ctx context.Context) ([]models.Course, error)
 	//TODO implement other methods
 }
 
@@ -20,7 +22,7 @@ func NewPsgCourseRepo(db *sqlx.DB) *PsgCourseRepo {
 	}
 }
 
-func (pcr *PsgCourseRepo) GetAll() ([]models.Course, error) {
+func (pcr *PsgCourseRepo) GetAll(ctx context.Context) ([]models.Course, error) {
 	var courses []models.Course
 
 	query := `
@@ -31,7 +33,7 @@ func (pcr *PsgCourseRepo) GetAll() ([]models.Course, error) {
 		ORDER BY created_at DESC
 	`
 
-	err := pcr.db.Select(&courses, query)
+	err := pcr.db.SelectContext(ctx, &courses, query)
 	if err != nil {
 		return nil, err
 	}

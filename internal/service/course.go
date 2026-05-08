@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/AdilzhanZh/LMS_backend/internal/models"
 	"github.com/AdilzhanZh/LMS_backend/internal/repository"
 )
@@ -13,6 +15,6 @@ func NewCourseService(repo repository.CourseRepo) *CourseService {
 	return &CourseService{repo: repo}
 }
 
-func (cs *CourseService) GetAll() ([]models.Course, error) {
-	return cs.repo.GetAll()
+func (cs *CourseService) GetAll(ctx context.Context) ([]models.Course, error) {
+	return cs.repo.GetAll(ctx)
 }
