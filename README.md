@@ -33,6 +33,41 @@
 
 ---
 
+### ЭНДПОЙНТЫ ДЛЯ LESSONS
+
+**GET /lessons** — Возвращает все уроки.
+
+**GET /lessons/3** — Возвращает один урок по ID.
+
+**POST /lessons** — Создает новый урок.  
+*Тело запроса:*
+```json
+{
+  "course_id": 1,
+  "title": "Introduction to Backend Development",
+  "content": "Lesson text content",
+  "video_url": "https://example.com/video.mp4",
+  "duration": 45,
+  "position": 1,
+  "is_preview": true
+}
+```
+
+**PUT /lessons/3** — Обновляет урок по ID.  
+*Пример тела запроса:*
+```json
+{
+  "title": "Updated Lesson Title",
+  "duration": 60,
+  "position": 2,
+  "is_preview": false
+}
+```
+
+**DELETE /lessons/3** — Удаляет урок по ID.
+
+---
+
 ### ТАБЛИЦЫ
 
 ```sql
