@@ -33,7 +33,10 @@ func main() {
 
 	h := handler.NewHandler(courseService)
 	router, err := h.InitRoutes()
-
+	if err != nil {
+		slog.Error("failed to init router", "router", err)
+		return
+	}
 	srv := server.New(router, cfg.Port)
 	err = srv.Run()
 	if err != nil {
