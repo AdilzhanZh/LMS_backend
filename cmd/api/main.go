@@ -46,10 +46,12 @@ func buildApp(cfg *config.Config) (*gin.Engine, error) {
 
 	courseRepo := repository.NewPsgCourseRepo(db)
 	lessonRepo := repository.NewPsgLessonRepo(db)
+	userRepo := repository.NewPsgUserRepo(db)
 
 	services := &service.Services{
 		Course: service.NewCourseService(courseRepo, lessonRepo),
 		Lesson: service.NewLessonService(lessonRepo, courseRepo),
+		Auth:   service.NewAuthService(userRepo),
 	}
 
 	h := handler.NewHandler(services)

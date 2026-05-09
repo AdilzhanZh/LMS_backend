@@ -18,6 +18,8 @@ func NewHandler(services *service.Services) *Handler {
 func (h *Handler) InitRoutes() (*gin.Engine, error) {
 	r := gin.Default()
 
+	r.POST("/register", h.Register)
+
 	r.GET("/courses", h.GetCourses)
 	r.GET("/courses/:id", h.GetCourseByID)
 	r.DELETE("/courses/:id", h.DeleteCourse)
