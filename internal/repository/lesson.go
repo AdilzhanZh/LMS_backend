@@ -20,6 +20,7 @@ type LessonRepo interface {
 	DeleteByID(ctx context.Context, ID int) error
 	Create(ctx context.Context, lesson models.CreateLesson) (int, error)
 	Update(ctx context.Context, id int, lesson models.UpdateLesson) (int, error)
+	GetByCourseID(ctx context.Context, CourseID int) ([]models.Lesson, error)
 }
 
 type PsgLessonRepo struct {
@@ -30,6 +31,27 @@ func NewPsgLessonRepo(db *sqlx.DB) *PsgLessonRepo {
 	return &PsgLessonRepo{
 		db: db,
 	}
+}
+
+func (plr *PsgLessonRepo) GetByCourseID(ctx context.Context, CourseID int) ([]models.Lesson, error) {
+	var lessons []models.Lesson
+
+	query := `
+		SELECT id, course_id, title, content, video_url, duration, position,
+		is_preview, created_at, updated_at, deleted_at
+		FROM lessons
+		WHERE deleted_at IS NULL
+		AND course_id = $1
+		ORDER BY course_id ASC
+	`
+
+	err := plr.db.SelectContext(ctx, &lessons, query, CourseID)
+	if err != nil {
+		slog.Error("failed to get lessons", "db", err)
+		return nil, err
+	}
+
+	return lessons, nil
 }
 
 func (plr *PsgLessonRepo) Create(ctx context.Context, lesson models.CreateLesson) (int, error) {

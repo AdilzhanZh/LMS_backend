@@ -26,7 +26,7 @@ func (h *Handler) UpdateLesson(c *gin.Context) {
 		return
 	}
 
-	updatedID, err := h.lessonService.Update(c.Request.Context(), id, lesson)
+	updatedID, err := h.services.Lesson.Update(c.Request.Context(), id, lesson)
 	if err != nil {
 		switch {
 		case errors.Is(err, models.ErrLessonNotFound):
@@ -53,7 +53,7 @@ func (h *Handler) CreateLesson(c *gin.Context) {
 		return
 	}
 
-	id, err := h.lessonService.Create(c.Request.Context(), lesson)
+	id, err := h.services.Lesson.Create(c.Request.Context(), lesson)
 	if err != nil {
 		if errors.Is(err, models.ErrCourseNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -77,7 +77,7 @@ func (h *Handler) DeleteLesson(c *gin.Context) {
 		return
 	}
 
-	if err = h.lessonService.DeleteByID(c.Request.Context(), id); err != nil {
+	if err = h.services.Lesson.DeleteByID(c.Request.Context(), id); err != nil {
 		if errors.Is(err, models.ErrLessonNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "lesson to delete " + err.Error()})
 			return
@@ -98,7 +98,7 @@ func (h *Handler) GetLessonByID(c *gin.Context) {
 		return
 	}
 
-	lesson, err := h.lessonService.GetLessonByID(c.Request.Context(), id)
+	lesson, err := h.services.Lesson.GetLessonByID(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, models.ErrLessonNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -116,7 +116,7 @@ func (h *Handler) GetLessonByID(c *gin.Context) {
 }
 
 func (h *Handler) GetLessons(c *gin.Context) {
-	lessons, err := h.lessonService.GetAll(c.Request.Context())
+	lessons, err := h.services.Lesson.GetAll(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get lessons"})
 		return

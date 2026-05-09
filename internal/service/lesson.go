@@ -2,17 +2,22 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/AdilzhanZh/LMS_backend/internal/models"
 	"github.com/AdilzhanZh/LMS_backend/internal/repository"
 )
 
 type LessonService struct {
-	repo repository.LessonRepo
+	repo       repository.LessonRepo
+	courseRepo repository.CourseRepo
 }
 
-func NewLessonService(repo repository.LessonRepo) *LessonService {
-	return &LessonService{repo: repo}
+func NewLessonService(repo repository.LessonRepo, courseRepo repository.CourseRepo) *LessonService {
+	return &LessonService{
+		repo:       repo,
+		courseRepo: courseRepo,
+	}
 }
 
 func (ls *LessonService) GetAll(ctx context.Context) ([]models.Lesson, error) {
@@ -24,10 +29,31 @@ func (ls *LessonService) GetLessonByID(ctx context.Context, ID int) (models.Less
 }
 
 func (ls *LessonService) DeleteByID(ctx context.Context, ID int) error {
+
+	lesson, err := ls.repo.GetByID(ctx, ID)
+	if err != nil {
+		return err
+	}
+
+	course, err := ls.courseRepo.GetByID(ctx, lesson.CourseID)
+	if err != nil {
+		return err
+	}
+
+	if course.IsActive {
+		return errors.New("cannot delete lesson inside active course")
+	}
+
 	return ls.repo.DeleteByID(ctx, ID)
 }
 
 func (ls *LessonService) Create(ctx context.Context, lesson models.CreateLesson) (int, error) {
+
+	_, err := ls.courseRepo.GetByID(ctx, lesson.CourseID)
+	if err != nil {
+		return 0, err
+	}
+
 	return ls.repo.Create(ctx, lesson)
 }
 

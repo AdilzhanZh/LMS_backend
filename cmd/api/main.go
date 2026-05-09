@@ -11,6 +11,7 @@ import (
 	"github.com/AdilzhanZh/LMS_backend/internal/repository"
 	"github.com/AdilzhanZh/LMS_backend/internal/server"
 	"github.com/AdilzhanZh/LMS_backend/internal/service"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -22,19 +23,8 @@ func main() {
 	slogger := logger.New(cfg.LogLevel)
 	slog.SetDefault(slogger)
 
-	db, err := repository.NewPostgresDB(cfg)
-	if err != nil {
-		slog.Error("failed to connect db", "db", err)
-		return
-	}
+	router, err := buildApp(cfg)
 
-	courseRepo := repository.NewPsgCourseRepo(db)
-	courseService := service.NewCourseService(courseRepo)
-	lessonRepo := repository.NewPsgLessonRepo(db)
-	lessonService := service.NewLessonService(lessonRepo)
-
-	h := handler.NewHandler(courseService, lessonService)
-	router, err := h.InitRoutes()
 	if err != nil {
 		slog.Error("failed to init router", "router", err)
 		return
@@ -45,4 +35,25 @@ func main() {
 		slog.Error("failed to start server", "error", err.Error())
 		os.Exit(1)
 	}
+}
+
+func buildApp(cfg *config.Config) (*gin.Engine, error) {
+	db, err := repository.NewPostgresDB(cfg)
+	if err != nil {
+		slog.Error("failed to connect db", "db", err)
+		return nil, err
+	}
+
+	courseRepo := repository.NewPsgCourseRepo(db)
+	lessonRepo := repository.NewPsgLessonRepo(db)
+
+	services := &service.Services{
+		Course: service.NewCourseService(courseRepo, lessonRepo),
+		Lesson: service.NewLessonService(lessonRepo, courseRepo),
+	}
+
+	h := handler.NewHandler(services)
+	router, err := h.InitRoutes()
+
+	return router, err
 }
