@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/AdilzhanZh/LMS_backend/internal/auth"
 	"github.com/AdilzhanZh/LMS_backend/internal/config"
 	"github.com/AdilzhanZh/LMS_backend/internal/handler"
 	"github.com/AdilzhanZh/LMS_backend/internal/pkg/logger"
@@ -48,10 +49,12 @@ func buildApp(cfg *config.Config) (*gin.Engine, error) {
 	lessonRepo := repository.NewPsgLessonRepo(db)
 	userRepo := repository.NewPsgUserRepo(db)
 
+	jwtManager := auth.NewJWTManager(cfg.JWT.Secret, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, cfg.JWT.Issuer)
+
 	services := &service.Services{
 		Course: service.NewCourseService(courseRepo, lessonRepo),
 		Lesson: service.NewLessonService(lessonRepo, courseRepo),
-		Auth:   service.NewAuthService(userRepo),
+		Auth:   service.NewAuthService(userRepo, jwtManager),
 	}
 
 	h := handler.NewHandler(services)
