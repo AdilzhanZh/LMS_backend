@@ -99,8 +99,8 @@ func (jm *JWTManager) NewRefreshToken(user models.User) (string, int64, error) {
 	return signed, expiresAt.Unix(), nil
 }
 
-func (m *JWTManager) ParseRefreshToken(tokenStr string) (*models.User, error) {
-	claims, err := m.parseToken(tokenStr, "refresh")
+func (jm *JWTManager) ParseRefreshToken(tokenStr string) (*models.User, error) {
+	claims, err := jm.parseToken(tokenStr, "refresh")
 	if err != nil {
 		return nil, err
 	}

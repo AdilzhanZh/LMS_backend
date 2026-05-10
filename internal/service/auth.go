@@ -127,3 +127,22 @@ func (s *AuthService) Refresh(refreshToken string) (models.AuthTokens, error) {
 		ExpiresIn:    expiresIn,
 	}, nil
 }
+
+func (s *AuthService) ChangeUserRole(userID int, newRole string) (int, error) {
+	role := strings.TrimSpace(strings.ToLower(newRole))
+
+	if !models.IsValidRole(role) {
+		return 0, models.ErrInvalidRole
+	}
+
+	user, err := s.repo.GetByID(userID)
+	if err != nil {
+		return 0, err
+	}
+
+	if strings.ToLower(strings.TrimSpace(user.Role)) != models.RoleStudent {
+		return 0, models.ErrRoleChangeOnlyFromStudent
+	}
+
+	return s.repo.UpdateRole(userID, role)
+}
