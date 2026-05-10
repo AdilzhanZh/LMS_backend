@@ -1,17 +1,21 @@
 package handler
 
 import (
+	"github.com/AdilzhanZh/LMS_backend/internal/auth"
+	"github.com/AdilzhanZh/LMS_backend/internal/middleware"
 	"github.com/AdilzhanZh/LMS_backend/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	services *service.Services
+	services     *service.Services
+	tokenManager auth.TokenManager
 }
 
-func NewHandler(services *service.Services) *Handler {
+func NewHandler(services *service.Services, tokenManager auth.TokenManager) *Handler {
 	return &Handler{
-		services: services,
+		services:     services,
+		tokenManager: tokenManager,
 	}
 }
 
@@ -24,9 +28,11 @@ func (h *Handler) InitRoutes() (*gin.Engine, error) {
 	{
 		auth.POST("/register", h.Register)
 		auth.POST("/login", h.Login)
+		auth.POST("/refresh", h.Refresh)
 	}
 
 	courses := api.Group("/courses")
+	courses.Use(middleware.Auth(h.tokenManager))
 	{
 		courses.GET("", h.GetCourses)
 		courses.GET("/:id", h.GetCourseByID)
@@ -36,6 +42,7 @@ func (h *Handler) InitRoutes() (*gin.Engine, error) {
 	}
 
 	lessons := api.Group("/lessons")
+	lessons.Use(middleware.Auth(h.tokenManager))
 	{
 		lessons.GET("", h.GetLessons)
 		lessons.GET("/:id", h.GetLessonByID)

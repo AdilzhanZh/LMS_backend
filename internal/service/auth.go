@@ -78,14 +78,52 @@ func (s *AuthService) Login(ctx context.Context, input models.LoginUser) (models
 		return models.AuthTokens{}, err
 	}
 
+	refreshToken, _, err := s.tokenManager.NewRefreshToken(user)
+	if err != nil {
+		return models.AuthTokens{}, err
+	}
+
 	expiresIn := accessExp - time.Now().Unix()
 	if expiresIn < 0 {
 		expiresIn = 0
 	}
 
 	return models.AuthTokens{
-		AccessToken: accessToken,
-		//RefreshToken: refreshToken,
-		ExpiresIn: expiresIn,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:    expiresIn,
+	}, nil
+}
+
+func (s *AuthService) Refresh(refreshToken string) (models.AuthTokens, error) {
+	refreshToken = strings.TrimSpace(refreshToken)
+	if refreshToken == "" {
+		return models.AuthTokens{}, errors.New("refresh token is required")
+	}
+
+	user, err := s.tokenManager.ParseRefreshToken(refreshToken)
+	if err != nil {
+		return models.AuthTokens{}, err
+	}
+
+	accessToken, accessExp, err := s.tokenManager.NewAccessToken(*user)
+	if err != nil {
+		return models.AuthTokens{}, err
+	}
+
+	newRefreshToken, _, err := s.tokenManager.NewRefreshToken(*user)
+	if err != nil {
+		return models.AuthTokens{}, err
+	}
+
+	expiresIn := accessExp - time.Now().Unix()
+	if expiresIn < 0 {
+		expiresIn = 0
+	}
+
+	return models.AuthTokens{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+		ExpiresIn:    expiresIn,
 	}, nil
 }
