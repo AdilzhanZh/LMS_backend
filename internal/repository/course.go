@@ -20,6 +20,7 @@ type CourseRepo interface {
 	DeleteByID(ctx context.Context, ID int) error
 	Create(ctx context.Context, course models.CreateCourse) (int, error)
 	Update(ctx context.Context, id int, course models.UpdateCourse) (int, error)
+	DeleteByIDTx(ctx context.Context, tx *sqlx.Tx, id int) error
 }
 
 type PsgCourseRepo struct {
@@ -85,6 +86,32 @@ func (pcr *PsgCourseRepo) DeleteByID(ctx context.Context, ID int) error {
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("delete course rowsAffected error: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return models.ErrCourseNotFound
+	}
+
+	return nil
+}
+
+func (pcr *PsgCourseRepo) DeleteByIDTx(ctx context.Context, tx *sqlx.Tx, id int) error {
+	query := `
+		UPDATE courses
+		SET deleted_at = NOW(),
+		    updated_at = NOW()
+		WHERE id = $1
+		AND deleted_at IS NULL
+	`
+
+	result, err := tx.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("delete course error: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
 	}
 
 	if rowsAffected == 0 {
